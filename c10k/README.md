@@ -89,8 +89,15 @@ images/         計測結果のグラフ
 
 リポジトリのルートで実行する。
 
+1万接続の比較:
+
 ```bash
 ./c10k/bench.sh
+```
+
+1件ごとに重い計算を入れた比較:
+
+```bash
 ./c10k/cpu-bench.sh
 ```
 
@@ -104,10 +111,15 @@ images/         計測結果のグラフ
 | | `C` | 64 | 接続数 |
 | | `DURATION` | 5s | 計測時間 |
 
-グラフの作り直し（`matplotlib` が必要）:
+グラフの作り直しには `matplotlib` が必要（初回だけ）:
 
 ```bash
 ./.venv/bin/pip install matplotlib
+```
+
+グラフを作り直す:
+
+```bash
 ./.venv/bin/python c10k/charts.py
 ```
 
