@@ -1,0 +1,66 @@
+// サーバーとクライアントの間の約束を、言語に依存しない形で書いたもの。
+// 本の JSON 版で毎回送っていた method / params / param_types は、全部ここで決まる。
+// Python も Node.js も、このファイルから自分の言語のコードを作って通信する。
+syntax = "proto3";
+
+package calc;
+
+service Calculator {
+  // 本の Request 例の subtract
+  rpc Subtract(SubtractRequest) returns (IntReply);
+
+  // 本の課題の5つの関数
+  rpc Floor(FloorRequest) returns (IntReply);
+  rpc Nroot(NrootRequest) returns (DoubleReply);
+  rpc Reverse(ReverseRequest) returns (StringReply);
+  rpc ValidAnagram(ValidAnagramRequest) returns (BoolReply);
+  rpc Sort(SortRequest) returns (StringListReply);
+}
+
+// 「= 1」「= 2」は値ではなくフィールド番号。通信ではフィールド名ではなくこの番号が送られる。
+message SubtractRequest {
+  int64 a = 1;
+  int64 b = 2;
+}
+
+message FloorRequest {
+  double x = 1;
+}
+
+message NrootRequest {
+  int64 n = 1;
+  int64 x = 2;
+}
+
+message ReverseRequest {
+  string s = 1;
+}
+
+message ValidAnagramRequest {
+  string str1 = 1;
+  string str2 = 2;
+}
+
+message SortRequest {
+  repeated string str_arr = 1; // repeated = 配列
+}
+
+message IntReply {
+  int64 result = 1;
+}
+
+message DoubleReply {
+  double result = 1;
+}
+
+message StringReply {
+  string result = 1;
+}
+
+message BoolReply {
+  bool result = 1;
+}
+
+message StringListReply {
+  repeated string result = 1;
+}

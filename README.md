@@ -24,22 +24,43 @@ unix/   UNIXドメインソケット
   python/       書籍のPythonコードと、faker 版の対話型アプリ
 
 c10k/   C10K問題の比較ベンチ（詳細は下の「C10K ベンチ」）
+
+rpc/    gRPC（Protocol Buffers）による RPC（詳細は下の「RPC」）
 ```
 
 ## 動かし方
 
-Go:
+Go のサーバー:
 
 ```bash
 go run ./unix/faker-app/server
+```
+
+Go のクライアント（別のターミナルで）:
+
+```bash
 go run ./unix/faker-app/client
 ```
 
-Python（`faker` が必要）:
+Python の準備（初回だけ）:
 
 ```bash
-python3 -m venv .venv && ./.venv/bin/pip install faker
+python3 -m venv .venv
+```
+
+```bash
+./.venv/bin/pip install faker
+```
+
+Python のサーバー:
+
+```bash
 ./.venv/bin/python unix/python/faker-app/server.py
+```
+
+Python のクライアント（別のターミナルで）:
+
+```bash
 ./.venv/bin/python unix/python/faker-app/client.py
 ```
 
@@ -51,7 +72,57 @@ Go版サーバーと Python版クライアントは同じプロトコル（1行=
 
 **計測結果と図は [c10k/README.md](c10k/README.md) にまとめている。**
 
+1万接続の比較（全部で数分。`./c10k/bench.sh go-kqueue` のように名前を指定すると1つだけ）:
+
 ```bash
-./c10k/bench.sh       # 1万接続（全部で数分。./c10k/bench.sh go-kqueue のように名前を指定すると1つだけ）
-./c10k/cpu-bench.sh   # 1件ごとに重い計算を入れた比較（1分ほど。WORK_MS=2 で計算量を変えられる）
+./c10k/bench.sh
+```
+
+1件ごとに重い計算を入れた比較（1分ほど。`WORK_MS=2` で計算量を変えられる）:
+
+```bash
+./c10k/cpu-bench.sh
+```
+
+## RPC
+
+`rpc/proto/calc.proto` に関数（`Subtract` / `Floor` / `Nroot` / `Reverse` / `ValidAnagram` / `Sort`）と引数・戻り値の型を定義し、Python の gRPC サーバーを Node.js から呼ぶ。通信は UNIX ドメインソケット（`/tmp/calc.sock`）。
+
+```
+rpc/
+  proto/calc.proto     サーバーとクライアントの約束（関数名と型）
+  gen.sh               calc.proto から Python のコードを生成する
+  python/server.py     gRPC サーバー
+  python/wire_demo.py  同じリクエストを JSON と Protocol Buffers で表したバイト列を比べる
+  node/client.js       gRPC クライアント（calc.proto を実行時に読み込む）
+```
+
+Python の gRPC を入れる（初回だけ）:
+
+```bash
+./.venv/bin/pip install grpcio grpcio-tools
+```
+
+Node.js の gRPC を入れる（初回だけ）:
+
+```bash
+npm --prefix rpc/node install
+```
+
+`calc.proto` から Python のコードを生成する（`.proto` を変えたらやり直す）:
+
+```bash
+./rpc/gen.sh
+```
+
+サーバーを起動する:
+
+```bash
+./.venv/bin/python rpc/python/server.py
+```
+
+クライアントを実行する（別のターミナルで）:
+
+```bash
+node rpc/node/client.js
 ```

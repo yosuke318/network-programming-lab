@@ -2,3 +2,5 @@
 __pycache__/
 *.pyc
 c10k/qiita.md
+rpc/python/calc_pb2*
+node_modules/
