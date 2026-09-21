@@ -23,17 +23,7 @@ unix/   UNIXドメインソケット
   faker-app/    gofakeit で偽データを返す対話型アプリ（Go）
   python/       書籍のPythonコードと、faker 版の対話型アプリ
 
-c10k/   C10K問題の比較ベンチ（1万接続を7種類のサーバーで捌いて比べる）
-  python/       直列・スレッド・selectors・asyncio の4種類
-  go/goroutine/ goroutine 版（-lock-os-thread で1接続1OSスレッドを再現）
-  go/kqueue/    kqueue を直接使ったI/O多重化版（macOS専用）
-  go/loadgen/   負荷クライアント（接続数・OSスレッド数・メモリを計測）
-  go/cpuload/   処理件数と使ったCPUコア数を測るクライアント
-  go/cpuwork/, python/work.py
-                1件ごとに WORK_MS ミリ秒のCPU計算をさせる部品（未指定なら何もしない）
-  bench.sh      1万接続を張って全サーバーを順に計測するスクリプト
-  cpu-bench.sh  1件ごとに重い計算を入れて処理件数を比べるスクリプト
-  charts.py     計測結果のグラフを images/ に出力（matplotlib が必要）
+c10k/   C10K問題の比較ベンチ（詳細は下の「C10K ベンチ」）
 ```
 
 ## 動かし方
@@ -55,14 +45,13 @@ python3 -m venv .venv && ./.venv/bin/pip install faker
 
 Go版サーバーと Python版クライアントは同じプロトコル（1行=1メッセージ）なので相互に接続できる。
 
-C10K ベンチ（全部で数分かかる。`./c10k/bench.sh go-kqueue` のように名前を指定すると1つだけ実行）:
+## C10K ベンチ
+
+同じ行エコーサーバーを Python と Go で7種類（直列・1接続1スレッド・I/O多重化）書き、1万接続を張ったときの OS スレッド数・メモリ・応答成功率と、1件ごとに重い計算を入れたときの処理件数を比べる。
+
+**計測結果と図は [c10k/README.md](c10k/README.md) にまとめている。**
 
 ```bash
-./c10k/bench.sh
-```
-
-重い計算を入れた比較（1分ほど。`WORK_MS=2 ./c10k/cpu-bench.sh` で計算量を変えられる）:
-
-```bash
-./c10k/cpu-bench.sh
+./c10k/bench.sh       # 1万接続（全部で数分。./c10k/bench.sh go-kqueue のように名前を指定すると1つだけ）
+./c10k/cpu-bench.sh   # 1件ごとに重い計算を入れた比較（1分ほど。WORK_MS=2 で計算量を変えられる）
 ```
