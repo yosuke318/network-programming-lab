@@ -7,6 +7,12 @@
 set -u
 cd "$(dirname "$0")/.."
 
+# kqueue 版のビルドと sysctl hw.ncpu が macOS 前提。
+if [ "$(uname -s)" != "Darwin" ]; then
+  echo "cpu-bench.sh は macOS 専用です（kqueue を使うため）" >&2
+  exit 1
+fi
+
 export WORK_MS=${WORK_MS:-1}
 C=${C:-64}
 DURATION=${DURATION:-5s}

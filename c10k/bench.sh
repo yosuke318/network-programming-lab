@@ -7,6 +7,13 @@
 set -u
 cd "$(dirname "$0")/.."
 
+# kqueue 版のビルドと、ps -M によるスレッド数の計測が macOS 前提。
+# kqueue だけ飛ばしても、他の OS ではスレッド数が正しく数えられないので最初に止める。
+if [ "$(uname -s)" != "Darwin" ]; then
+  echo "bench.sh は macOS 専用です（kqueue と ps -M を使うため）" >&2
+  exit 1
+fi
+
 N=${N:-10000}
 # 直列サーバーは1人ずつしか捌けず、残りは接続タイムアウトを待つだけになるので本数を減らす。
 N_SEQ=${N_SEQ:-300}
@@ -36,7 +43,7 @@ run() { # 名前 アドレス 接続数 サーバー起動コマンド...
   kill "$pid" 2>/dev/null
   wait "$pid" 2>/dev/null
   echo "--- server log ---"
-  grep -v '^\s*$' "$BIN/$name.log" | head -4
+  grep -v '^[[:space:]]*$' "$BIN/$name.log" | head -4
   echo
 }
 

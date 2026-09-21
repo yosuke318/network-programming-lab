@@ -116,4 +116,4 @@ images/         計測結果のグラフ
 - 1万接続の計測は1回だけ。数値には誤差があり、たとえば asyncio の1接続あたりのメモリは測り直すと約2.4KBから約5KBに変わった
 - 1万接続の計測では応答時間を比べていない。負荷クライアントも同じ Mac 上で CPU を使うため
 - スレッド上限の4096、accept キュー上限の128は、今回の macOS の設定値。OS や設定によって変わる
-- `go/kqueue/` は macOS / BSD 専用。Linux では epoll で書き直す必要がある
+- `bench.sh` と `cpu-bench.sh` は macOS 専用（他の OS では最初にエラーで止まる）。`go/kqueue/` は macOS / BSD 向けで、`loadgen` のスレッド数の計測も macOS の `ps -M` に依存している。Linux で動かすには kqueue 版を epoll で書き直し、スレッド数を `/proc/<PID>/status` などから取る必要がある
