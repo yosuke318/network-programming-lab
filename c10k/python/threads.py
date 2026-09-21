@@ -8,6 +8,8 @@ import os
 import socket
 import threading
 
+import work
+
 PORT = 9101
 
 
@@ -15,6 +17,8 @@ def handle(conn):
     try:
         with conn, conn.makefile('rwb') as stream:
             for line in stream:
+                # 計算中は GIL を握るので、スレッドが何本あっても同時に計算できるのは1本だけ。
+                work.burn()
                 stream.write(line)
                 stream.flush()
     except OSError:

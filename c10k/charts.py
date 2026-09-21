@@ -1,6 +1,7 @@
 """C10K ベンチの計測結果をグラフにする。
 
-数値は 2026-09-21 に Apple M1 / 16GB / macOS 14.7.8 で ./c10k/bench.sh を1回実行した結果。
+数値は 2026-09-21 に Apple M1 / 16GB / macOS 14.7.8 で計測したもの。
+./c10k/bench.sh は1回、./c10k/cpu-bench.sh は3回実行した結果。
 実行: ./.venv/bin/python c10k/charts.py   （matplotlib が必要）
 出力: c10k/images/*.png
 """
@@ -64,23 +65,23 @@ def base_axes(title, subtitle, xlabel):
     return fig, ax
 
 
-def model_bars(ax, values, labels, top_pad=0.5):
+def model_bars(ax, values, labels, top_pad=0.5, rows=ROWS):
     """values: None なら棒を描かずラベルだけ出す（計測できなかった行）。"""
-    ys = range(len(ROWS))
-    for y, (name, model), v, label in zip(ys, ROWS, values, labels):
+    ys = range(len(rows))
+    for y, (name, model), v, label in zip(ys, rows, values, labels):
         if v is not None:
             ax.barh(y, v, height=0.62, color=MODELS[model][1], zorder=2)
         # 値は系列色ではなく文字色で書く。色は棒が持つ。
         x = v if v is not None else 0
         ax.annotate(label, (x, y), xytext=(6, 0), textcoords='offset points',
                     va='center', fontsize=9, color=INK if v is not None else INK_2)
-    ax.set_yticks(list(ys), [r[0] for r in ROWS])
+    ax.set_yticks(list(ys), [r[0] for r in rows])
     # 棒の無い行があっても全行が同じ間隔で並ぶよう、範囲を明示する（上下反転して先頭を上に）。
-    ax.set_ylim(len(ROWS) - 0.5, -top_pad)
+    ax.set_ylim(len(rows) - 0.5, -top_pad)
 
 
-def legend(fig):
-    handles = [Patch(color=c, label=l) for l, c in MODELS.values()]
+def legend(fig, models=tuple(MODELS)):
+    handles = [Patch(color=MODELS[m][1], label=MODELS[m][0]) for m in models]
     fig.legend(handles=handles, loc='upper right', bbox_to_anchor=(0.98, 0.975),
                ncol=3, frameon=False, fontsize=9, labelcolor=INK_2,
                handlelength=1.0, handleheight=0.9, columnspacing=1.2)
@@ -138,6 +139,49 @@ def memory_chart():
     finish(fig, 'c10k-memory.png')
 
 
+CPU_ROWS = [
+    ('Python スレッド', 'thread'),
+    ('Go OSスレッド固定', 'thread'),
+    ('Python selectors', 'mux'),
+    ('Python asyncio', 'mux'),
+    ('Go goroutine', 'mux'),
+    ('Go kqueue', 'mux'),
+]
+
+
+def cpu_chart():
+    fig, ax = base_axes('1件ごとに1msの計算を入れたときの処理件数',
+                        '64接続・5秒 × 3回（棒は中央値、細線は最小〜最大）',
+                        '1秒あたりの処理件数')
+    # 3回分の (件/秒, 使ったコア数)
+    runs = [
+        [(946, 1.09), (974, 1.09), (1037, 1.08)],
+        [(5270, 6.57), (5240, 6.75), (5262, 6.71)],
+        [(973, 1.00), (973, 1.00), (1011, 1.00)],
+        [(1000, 1.00), (1042, 1.00), (1005, 1.00)],
+        [(5448, 6.62), (5373, 6.30), (5152, 6.12)],
+        [(987, 1.00), (1024, 1.00), (986, 1.00)],
+    ]
+    medians, labels = [], []
+    for y, r in enumerate(runs):
+        rps = sorted(v for v, _ in r)
+        cores = sorted(c for _, c in r)
+        medians.append(rps[1])
+        labels.append('{:,}件/秒・{:.1f}コア'.format(rps[1], cores[1]))
+        ax.plot([rps[0], rps[2]], [y, y], color=INK, linewidth=1.2, zorder=3)
+    model_bars(ax, medians, labels, top_pad=1.2, rows=CPU_ROWS)
+    # 値ラベルを最大値の外側に出す
+    for text, r in zip(ax.texts, runs):
+        text.xy = (max(v for v, _ in r), text.xy[1])
+    ax.axvline(1000, color=INK_2, linestyle=(0, (4, 3)), linewidth=1, zorder=1)
+    ax.annotate('1コアの上限（1ms × 1000件）', (1000, -0.85), xytext=(6, 0),
+                textcoords='offset points', ha='left', va='center',
+                fontsize=8.5, color=INK_2)
+    ax.set_xlim(0, 8000)
+    legend(fig, models=('thread', 'mux'))
+    finish(fig, 'cpu-throughput.png')
+
+
 def backlog_chart():
     fig, ax = plt.subplots(figsize=(8, 4.0), dpi=200)
     fig.patch.set_facecolor(SURFACE)
@@ -179,4 +223,5 @@ if __name__ == '__main__':
     success_chart()
     threads_chart()
     memory_chart()
+    cpu_chart()
     backlog_chart()

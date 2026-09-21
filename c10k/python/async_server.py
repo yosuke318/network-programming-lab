@@ -9,6 +9,8 @@
 import asyncio
 import os
 
+import work
+
 PORT = 9103
 
 
@@ -16,6 +18,8 @@ async def handle(reader, writer):
     try:
         # データが来るまで待つ間、イベントループは他の接続の処理に回る。
         while line := await reader.readline():
+            # await の無い計算はイベントループを止める。その間、他の接続は処理されない。
+            work.burn()
             writer.write(line)
             await writer.drain()
     except OSError:

@@ -28,9 +28,12 @@ c10k/   C10K問題の比較ベンチ（1万接続を7種類のサーバーで捌
   go/goroutine/ goroutine 版（-lock-os-thread で1接続1OSスレッドを再現）
   go/kqueue/    kqueue を直接使ったI/O多重化版（macOS専用）
   go/loadgen/   負荷クライアント（接続数・OSスレッド数・メモリを計測）
-  bench.sh      全サーバーを順に計測するスクリプト
+  go/cpuload/   処理件数と使ったCPUコア数を測るクライアント
+  go/cpuwork/, python/work.py
+                1件ごとに WORK_MS ミリ秒のCPU計算をさせる部品（未指定なら何もしない）
+  bench.sh      1万接続を張って全サーバーを順に計測するスクリプト
+  cpu-bench.sh  1件ごとに重い計算を入れて処理件数を比べるスクリプト
   charts.py     計測結果のグラフを images/ に出力（matplotlib が必要）
-  qiita.md      計測結果をまとめた記事
 ```
 
 ## 動かし方
@@ -56,4 +59,10 @@ C10K ベンチ（全部で数分かかる。`./c10k/bench.sh go-kqueue` のよ�
 
 ```bash
 ./c10k/bench.sh
+```
+
+重い計算を入れた比較（1分ほど。`WORK_MS=2 ./c10k/cpu-bench.sh` で計算量を変えられる）:
+
+```bash
+./c10k/cpu-bench.sh
 ```

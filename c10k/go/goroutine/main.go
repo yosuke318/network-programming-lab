@@ -11,6 +11,8 @@ import (
 	"net"
 	"os"
 	"runtime"
+
+	"netlab/c10k/go/cpuwork"
 )
 
 func main() {
@@ -50,6 +52,7 @@ func handle(conn net.Conn) {
 		if err != nil {
 			return
 		}
+		cpuwork.Burn()
 		if _, err := conn.Write(line); err != nil {
 			return
 		}

@@ -13,6 +13,8 @@ import os
 import selectors
 import socket
 
+import work
+
 PORT = 9102
 
 sel = selectors.DefaultSelector()
@@ -59,6 +61,8 @@ def on_event(sock, state, mask):
             state.inbuf += data
             while b'\n' in state.inbuf:
                 line, _, state.inbuf = state.inbuf.partition(b'\n')
+                # ここで計算している間、他の接続は誰も処理されない。
+                work.burn()
                 state.outbuf += line + b'\n'
 
     if state.outbuf:

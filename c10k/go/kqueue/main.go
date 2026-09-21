@@ -15,6 +15,8 @@ import (
 	"log"
 	"os"
 	"syscall"
+
+	"netlab/c10k/go/cpuwork"
 )
 
 const port = 9202
@@ -133,6 +135,8 @@ func onReadable(kq, fd int, conns map[int]*conn, buf []byte) {
 		if i < 0 {
 			break
 		}
+		// ここで計算している間、他の1万接続は誰も処理されない。
+		cpuwork.Burn()
 		c.out = append(c.out, c.in[:i+1]...)
 		c.in = c.in[i+1:]
 	}

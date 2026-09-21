@@ -6,6 +6,8 @@ accept → 処理 → accept の順に回るので、1人目が繋がってい�
 import os
 import socket
 
+import work
+
 PORT = 9100
 
 
@@ -21,6 +23,7 @@ def main():
         try:
             with conn, conn.makefile('rwb') as stream:
                 for line in stream:
+                    work.burn()
                     stream.write(line)
                     stream.flush()
         except OSError:
