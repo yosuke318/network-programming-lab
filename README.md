@@ -22,6 +22,15 @@ unix/   UNIXドメインソケット
   client/       Go版クライアント
   faker-app/    gofakeit で偽データを返す対話型アプリ（Go）
   python/       書籍のPythonコードと、faker 版の対話型アプリ
+
+c10k/   C10K問題の比較ベンチ（1万接続を7種類のサーバーで捌いて比べる）
+  python/       直列・スレッド・selectors・asyncio の4種類
+  go/goroutine/ goroutine 版（-lock-os-thread で1接続1OSスレッドを再現）
+  go/kqueue/    kqueue を直接使ったI/O多重化版（macOS専用）
+  go/loadgen/   負荷クライアント（接続数・OSスレッド数・メモリを計測）
+  bench.sh      全サーバーを順に計測するスクリプト
+  charts.py     計測結果のグラフを images/ に出力（matplotlib が必要）
+  qiita.md      計測結果をまとめた記事
 ```
 
 ## 動かし方
@@ -42,3 +51,9 @@ python3 -m venv .venv && ./.venv/bin/pip install faker
 ```
 
 Go版サーバーと Python版クライアントは同じプロトコル（1行=1メッセージ）なので相互に接続できる。
+
+C10K ベンチ（全部で数分かかる。`./c10k/bench.sh go-kqueue` のように名前を指定すると1つだけ実行）:
+
+```bash
+./c10k/bench.sh
+```
