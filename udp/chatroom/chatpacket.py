@@ -73,6 +73,10 @@ def decode_request(packet):
     token_size = packet[1]
     if room_size == 0 or token_size == 0:
         raise ProtocolError('ルーム名かトークンが空')
+    if room_size > MAX_ROOM_NAME_SIZE:
+        raise ProtocolError('ルーム名が {} バイトを超えています'.format(MAX_ROOM_NAME_SIZE))
+    if token_size > MAX_TOKEN_SIZE:
+        raise ProtocolError('トークンが {} バイトを超えています'.format(MAX_TOKEN_SIZE))
     if len(packet) < 2 + room_size + token_size:
         raise ProtocolError('名乗っている長さがパケットより大きい')
 
