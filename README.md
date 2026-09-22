@@ -26,6 +26,9 @@ unix/   UNIXドメインソケット
 c10k/   C10K問題の比較ベンチ（詳細は下の「C10K ベンチ」）
 
 rpc/    gRPC（Protocol Buffers）による RPC（詳細は下の「RPC」）
+
+udp/    UDPソケット
+  chat/         UDP のチャットメッセンジャー（詳細は下の「UDP チャット」）
 ```
 
 ## 動かし方
@@ -126,3 +129,41 @@ npm --prefix rpc/node install
 ```bash
 node rpc/node/client.js
 ```
+
+## UDP チャット
+
+サーバーが受け取ったメッセージを、参加中の他の全クライアントへ転送する UDP のチャット（Python、標準ライブラリのみ）。
+
+```
+udp/chat/
+  protocol.py  パケット形式 [usernamelen 1バイト][username][message]（最大 4096 バイト、UTF-8）
+  server.py    リレーサーバー（参加者を送信元アドレスで覚え、60 秒送信がないか 3 回連続で送信に失敗したら外す）
+  client.py    CLI クライアント（ユーザー名を聞いてから 1 行 = 1 メッセージで送る）
+  bench.py     1000 人に毎秒 10 通 = 毎秒 1 万パケットを転送できるかの負荷試験
+```
+
+UDP にはコネクションがないので、サーバーは「最近パケットを送ってきたアドレス」を参加者とみなす。クライアントは起動時に本文が空のパケットを参加の合図として送る。コードのコメントにある【機能要件N】【非機能要件N】は課題文の番号に対応している。
+
+サーバーを起動する:
+
+```bash
+python3 udp/chat/server.py
+```
+
+クライアントを起動する（別のターミナルで。何人でも）:
+
+```bash
+python3 udp/chat/client.py
+```
+
+負荷試験は、サーバーをメッセージごとのログなし（`-q`）で起動してから:
+
+```bash
+python3 udp/chat/server.py -q
+```
+
+```bash
+python3 udp/chat/bench.py
+```
+
+手元の Mac では 1000 人・毎秒 10 通で 5 万パケットすべてが届き、約 10,000 パケット/秒。`--rate 30` にしても全部届いた（約 30,000 パケット/秒）。
