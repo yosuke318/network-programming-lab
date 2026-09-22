@@ -298,8 +298,12 @@ class ChatRoomServer:
         member.failures = 0
 
         # 【機能要件1.10】最初にこのトークンで UDP を送ってきたアドレスを、トークンの所有者にする。
-        first_time = member.addr is None
-        member.addr = addr
+        if member.addr is None:
+            member.addr = addr
+        elif addr != member.addr:
+            self.log('drop: {} は {} のトークンだが UDP の送信元が変わった（元 {}）'.format(
+                addr, member.username, member.addr))
+            return
 
         if message == chatpacket.LEAVE:
             # 自分から抜けたので、本人に切断の知らせは送らない。
