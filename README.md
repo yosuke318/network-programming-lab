@@ -134,6 +134,8 @@ node rpc/node/client.js
 
 サーバーが受け取ったメッセージを、参加中の他の全クライアントへ転送する UDP のチャット（Python、標準ライブラリのみ）。
 
+**学習目的に対して何が学べたかと、その実装箇所は [udp/chat/README.md](udp/chat/README.md) にまとめている。**
+
 ```
 udp/chat/
   protocol.py  パケット形式 [usernamelen 1バイト][username][message]（最大 4096 バイト、UTF-8）
