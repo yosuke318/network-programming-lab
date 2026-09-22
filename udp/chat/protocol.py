@@ -56,7 +56,7 @@ def decode(packet):
     その長さぶんをユーザー名、残りをメッセージとして取り出す。
     """
     if len(packet) > MAX_PACKET_SIZE:
-        raise ProtocolError('パケットが 4096 バイトを超えています')
+        raise ProtocolError('パケットが {} バイトを超えています'.format(MAX_PACKET_SIZE))
     if len(packet) < 1:
         raise ProtocolError('空のパケット')
 
