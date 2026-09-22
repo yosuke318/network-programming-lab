@@ -25,6 +25,12 @@ def main():
     parser.add_argument('--rate', type=int, default=10, help='毎秒の送信メッセージ数')
     parser.add_argument('--seconds', type=int, default=5, help='送り続ける秒数')
     args = parser.parse_args()
+    if args.clients <= 0:
+        parser.error('--clients は 1 以上にしてください')
+    if args.rate <= 0:
+        parser.error('--rate は 1 以上にしてください')
+    if args.seconds <= 0:
+        parser.error('--seconds は 1 以上にしてください')
     server = (args.host, args.port)
 
     # 受信役を参加させる（本文が空のパケット = 参加の合図）。
